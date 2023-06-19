@@ -1,15 +1,17 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs/promises");
-const { scrapFundTypes } = require("./scraper-functions/scrapeFundTypes");
+const { scrapeFundTypes } = require("./scraper-functions/scrapeFundTypes");
+const { scrapeAMCs } = require("./scraper-functions/scrapeAMCs");
 const { websiteUrl } = require("./constants");
 
 const start = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.goto(websiteUrl);
-  const fundTypes = await scrapFundTypes({ page });
-  await fs.writeFile("fund-types.txt", JSON.stringify(fundTypes));
-  console.log("Fund Types", fundTypes);
+  const fundTypesTable = await scrapeFundTypes({ page });
+  const amcsTable = await scrapeAMCs({ page });
+  await fs.writeFile("fund-types.txt", JSON.stringify(fundTypesTable));
+  await fs.writeFile("amcs.txt", JSON.stringify(amcsTable));
   await browser.close();
 };
 start();

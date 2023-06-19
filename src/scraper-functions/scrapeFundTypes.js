@@ -1,6 +1,6 @@
 const { parseAbbreviation } = require("../utils.js");
 
-const scrapFundTypes = ({ page }) => {
+const scrapeFundTypes = ({ page }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
@@ -32,5 +32,5 @@ const scrapFundTypes = ({ page }) => {
 };
 
 module.exports = {
-  scrapFundTypes,
+  scrapeFundTypes,
 };
