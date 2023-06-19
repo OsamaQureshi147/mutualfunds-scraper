@@ -1,1 +1,1 @@
-[{"name":"Dedicated Equity Funds","uid":"DEF"},{"name":"Voluntary Pension Funds","uid":"VPF"},{"name":"Exchange Traded Fund (ETF)","uid":"ETF"},{"name":"Open End Schemes","uid":"OES"}]
+[{"name":"Open End Schemes","uid":"OES"},{"name":"Dedicated Equity Funds","uid":"DEF"},{"name":"Voluntary Pension Funds","uid":"VPF"},{"name":"Exchange Traded Fund (ETF)","uid":"ETF"}]

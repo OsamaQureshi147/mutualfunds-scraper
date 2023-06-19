@@ -4,25 +4,20 @@ const scrapeFundTypes = ({ page }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
-        const nonSelectedFundTypeElements = await page.$$("#tab");
-        const nonSelectedFundTypes = await Promise.all(
-          nonSelectedFundTypeElements.map((nonSelectedFundTypeElement) =>
-            page.evaluate((el) => el.textContent, nonSelectedFundTypeElement)
+        const fundTypeElements = await page.$$("#tab, #sellink");
+        const fundTypes = await Promise.all(
+          fundTypeElements.map((fundTypeElement) =>
+            page.evaluate((el) => el.textContent, fundTypeElement)
           )
         );
-        const selectedFundTypeElement = await page.$("#sellink");
-        const selectedFundType = await page.evaluate(
-          (el) => el.textContent,
-          selectedFundTypeElement
-        );
 
-        const allFundTypes = [...nonSelectedFundTypes, selectedFundType];
-        const fundTypesTable = allFundTypes.map((fundType) => {
+        const fundTypesTable = fundTypes.map((fundType) => {
           return {
             name: fundType,
             uid: parseAbbreviation(fundType),
           };
         });
+
         res(fundTypesTable);
       } catch (error) {
         rej("Error scraping fund types");
