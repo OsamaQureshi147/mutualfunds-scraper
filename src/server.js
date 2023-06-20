@@ -4,7 +4,7 @@ const { scrapeFundTypes } = require("./scraper-functions/scrapeFundTypes");
 const { scrapeAMCs } = require("./scraper-functions/scrapeAMCs");
 const { websiteUrl } = require("./constants");
 
-const start = async () => {
+const startScraping = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.goto(websiteUrl);
@@ -14,4 +14,4 @@ const start = async () => {
   await fs.writeFile("amcs.txt", JSON.stringify(amcsTable));
   await browser.close();
 };
-start();
+startScraping();

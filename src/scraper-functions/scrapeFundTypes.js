@@ -7,14 +7,17 @@ const scrapeFundTypes = ({ page }) => {
         const fundTypeElements = await page.$$("#tab, #sellink");
         const fundTypes = await Promise.all(
           fundTypeElements.map((fundTypeElement) =>
-            page.evaluate((el) => el.textContent, fundTypeElement)
+            page.evaluate((el) => {
+              return { name: el.textContent, link: el.href };
+            }, fundTypeElement)
           )
         );
 
-        const fundTypesTable = fundTypes.map((fundType) => {
+        const fundTypesTable = fundTypes.map(({ name, link }) => {
           return {
-            name: fundType,
-            uid: parseAbbreviation(fundType),
+            uid: parseAbbreviation(name),
+            name,
+            link,
           };
         });
 
