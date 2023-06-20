@@ -4,11 +4,8 @@ const scrapeAMCs = ({ page }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
-        const amcElements = await page.$$(".amc");
-        const amcs = await Promise.all(
-          amcElements.map((amcElement) =>
-            page.evaluate((el) => el.textContent, amcElement)
-          )
+        const amcs = await page.$$eval(".amc", (elements) =>
+          elements.map((el) => el.textContent)
         );
         const amcsTable = amcs.map((amc) => {
           return {
