@@ -9,8 +9,8 @@ const scrapeAMCs = ({ page }) => {
         );
         const amcsTable = amcs.map((amc) => {
           return {
-            name: amc.slice(1),
-            uid: parseAbbreviation(amc.slice(1)),
+            uid: parseAbbreviation(amc.trim()),
+            name: amc.trim(),
           };
         });
         res(amcsTable);
