@@ -34,7 +34,6 @@ const scrapeFunds = ({ page }) => {
             fundType: parseAbbreviation(fundType),
           };
         });
-        console.log("Cells Data", formattedFundsTable);
         res(formattedFundsTable);
       } catch (error) {
         rej("Error scraping funds");
