@@ -43,7 +43,7 @@ const scrapeFunds = ({ page }) => {
 
           return formattedFundsDataWithAMCs;
         });
-        console.log("Rows,", fundsTable);
+
         const formattedFundsTable = fundsTable.map((fundRecord) => {
           return {
             ...fundRecord,
