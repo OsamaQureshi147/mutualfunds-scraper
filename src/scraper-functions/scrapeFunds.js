@@ -40,40 +40,8 @@ const scrapeFunds = ({ page }) => {
             });
             formattedFundsDataWithAMCs.push(fundRecordObj);
           });
-          // let amcsWithIndexes = [];
-          // fundsAndAmcsRows.forEach((row, i) => {
-          //   if (!Object.values(row.classList).length) {
-          //     const amcName = row.querySelector("td").textContent.trim();
-          //     amcsWithIndexes.push({ name: amcName, index: i });
-          //   }
-          // });
 
-          // const onlyFundsDataRows = fundsAndAmcsRows.filter((row) =>
-          //   Object.values(row.classList).includes("border")
-          // );
-
-          return formattedFundsDataWithAMCs.slice(0, 10);
-
-          const tableHeaders = [
-            "fundName",
-            "category",
-            "inceptionDate",
-            "aum",
-            "amc",
-          ];
-
-          return fundsAndAmcsRows.map((row) => {
-            // return the rows as JSON with key-value pairs
-            let fundRecordObj = {};
-            fundRecordObj["uid"] = row.id;
-            fundRecordObj["amc"] = "dummyAMC";
-            const cells = Array.from(row.querySelectorAll("td"));
-            cells.forEach((cell, i) => {
-              fundRecordObj[tableHeaders[i]] = cell.textContent.trim();
-            });
-            // return Object.values(row.classList);
-            return fundRecordObj;
-          });
+          return formattedFundsDataWithAMCs;
         });
         console.log("Rows,", fundsTable);
         const formattedFundsTable = fundsTable.map((fundRecord) => {
@@ -85,7 +53,7 @@ const scrapeFunds = ({ page }) => {
             amc: parseAbbreviation(fundRecord.amc),
           };
         });
-        res(fundsTable);
+        res(formattedFundsTable);
       } catch (error) {
         rej("Error scraping funds");
       }
