@@ -24,16 +24,15 @@ const scrapeAMCs = ({ page, linksToScrape, browser }) => {
               ];
             }
           }
-
-          const uniqueAMCs = [...new Set(amcs)];
-          const amcsTable = uniqueAMCs.map((amc) => {
-            return {
-              uid: parseAbbreviation(amc.trim()),
-              name: amc.trim(),
-            };
-          });
-          res(amcsTable);
         }
+        const uniqueAMCs = [...new Set(amcs)];
+        const amcsTable = uniqueAMCs.map((amc) => {
+          return {
+            uid: parseAbbreviation(amc.trim()),
+            name: amc.trim(),
+          };
+        });
+        res(amcsTable);
       } catch (error) {
         rej("Error scraping AMCs");
       }
