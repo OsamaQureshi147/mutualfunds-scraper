@@ -1,61 +1,84 @@
 const { parseAbbreviation } = require("../utils");
+const { websiteUrl } = require("../constants");
 
-const scrapeFunds = ({ page }) => {
+const getFundsData = async ({ page }) => {
+  const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
+    // div with id = sellink is current fundType.
+    // It is basically the selected tab
+    const fundType = document.getElementById("sellink")?.textContent.trim();
+
+    const formattedFundsDataWithAMCs = [];
+
+    // Need to filter the rows based on classLists.
+    // The tr with "border" class consists of funds data
+    // The tr with no class consists of the AMC which is required to develop the relation
+    const fundsAndAmcsRows = rows.filter(
+      (row) =>
+        Object.values(row.classList).includes("border") ||
+        !Object.values(row.classList).length
+    );
+
+    let currentAmc = "unknown";
+    fundsAndAmcsRows.forEach((row) => {
+      const tableHeaders = [
+        "fundName",
+        "category",
+        "inceptionDate",
+        "aum",
+        "amc",
+      ];
+      if (!Object.values(row.classList).length) {
+        currentAmc = row.querySelector("td").textContent.trim();
+        return;
+      }
+      // return the rows as JSON with key-value pairs
+      let fundRecordObj = {
+        uid: row.id,
+        amc: currentAmc,
+        fundType,
+      };
+      const cells = Array.from(row.querySelectorAll("td"));
+      cells.forEach((cell, i) => {
+        fundRecordObj[tableHeaders[i]] = cell.textContent.trim();
+      });
+      formattedFundsDataWithAMCs.push(fundRecordObj);
+    });
+
+    return formattedFundsDataWithAMCs;
+  });
+  return fundsTable;
+};
+
+const scrapeFunds = ({ page, browser, linksToScrape }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
-        const fundType = await page.$eval("#sellink", (el) => el.textContent);
-        const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
-          const formattedFundsDataWithAMCs = [];
+        let fundsRecords = await getFundsData({ page });
 
-          // Need to filter the rows based on classLists.
-          // The tr with "border" class consists of funds data
-          // The tr with no class consists of the AMC which is required to develop the relation
-          const fundsAndAmcsRows = rows.filter(
-            (row) =>
-              Object.values(row.classList).includes("border") ||
-              !Object.values(row.classList).length
-          );
-
-          let currentAmc = "unknown";
-          fundsAndAmcsRows.forEach((row) => {
-            const tableHeaders = [
-              "fundName",
-              "category",
-              "inceptionDate",
-              "aum",
-              "amc",
-            ];
-            if (!Object.values(row.classList).length) {
-              currentAmc = row.querySelector("td").textContent.trim();
-              return;
+        if (linksToScrape?.length) {
+          for (const link of linksToScrape) {
+            // avoid extra navigation
+            if (link !== websiteUrl) {
+              const page = await browser.newPage();
+              await page.goto(link);
+              const newPageFundRecords = await getFundsData({ page });
+              fundsRecords = [...fundsRecords, ...newPageFundRecords];
             }
-            // return the rows as JSON with key-value pairs
-            let fundRecordObj = {};
-            fundRecordObj["uid"] = row.id;
-            fundRecordObj["amc"] = currentAmc;
-            const cells = Array.from(row.querySelectorAll("td"));
-            cells.forEach((cell, i) => {
-              fundRecordObj[tableHeaders[i]] = cell.textContent.trim();
-            });
-            formattedFundsDataWithAMCs.push(fundRecordObj);
-          });
+          }
+        }
 
-          return formattedFundsDataWithAMCs;
-        });
-
-        const formattedFundsTable = fundsTable.map((fundRecord) => {
+        const formattedFundsTable = fundsRecords.map((fundRecord) => {
           return {
             ...fundRecord,
             fundName: parseAbbreviation(fundRecord.fundName),
             category: parseAbbreviation(fundRecord.category),
-            fundType: parseAbbreviation(fundType),
+            fundType: parseAbbreviation(fundRecord.fundType),
             amc: parseAbbreviation(fundRecord.amc),
           };
         });
         res(formattedFundsTable);
       } catch (error) {
-        rej("Error scraping funds");
+        rej({ error: "Error scraping funds", cause: error });
       }
     })();
   });
