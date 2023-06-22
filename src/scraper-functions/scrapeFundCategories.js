@@ -1,22 +1,25 @@
 const { parseAbbreviation } = require("../utils.js");
 const { websiteUrl } = require("../constants");
 
+const getCategoryColIndex = async ({ page }) => {
+  let headerColumns = await page.$$eval(
+    "table.mydata tr.tab-headings",
+    (elements) => {
+      const cells = Array.from(elements[0].querySelectorAll("td"));
+      return cells.map((cell) => cell.textContent.trim());
+    }
+  );
+  const categoryColIndex = headerColumns.findIndex((col) => col === "Category");
+  return { categoryColIndex };
+};
+
 const scrapeFundCategories = ({ page, linksToScrape, browser }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
         // Find the index of Category Column
-        let headerColumns = await page.$$eval(
-          "table.mydata tr.tab-headings",
-          (elements) => {
-            const cells = Array.from(elements[0].querySelectorAll("td"));
-            return cells.map((cell) => cell.textContent.trim());
-          }
-        );
-        const categoryColIndex = headerColumns.findIndex(
-          (col) => col === "Category"
-        );
-        console.log("CatgoryCOlIndex", categoryColIndex);
+        const { categoryColIndex } = await getCategoryColIndex({ page });
+
         // fetch from the current page
         let fundCategories = await page.$$eval(
           `table.mydata tr.border td:nth-child(${categoryColIndex + 1})`,
@@ -33,16 +36,7 @@ const scrapeFundCategories = ({ page, linksToScrape, browser }) => {
             if (link !== websiteUrl) {
               const page = await browser.newPage();
               await page.goto(link);
-              let headerColumns = await page.$$eval(
-                "table.mydata tr.tab-headings",
-                (elements) => {
-                  const cells = Array.from(elements[0].querySelectorAll("td"));
-                  return cells.map((cell) => cell.textContent.trim());
-                }
-              );
-              const categoryColIndex = headerColumns.findIndex(
-                (col) => col === "Category"
-              );
+              const { categoryColIndex } = await getCategoryColIndex({ page });
               fundCategories = [
                 ...fundCategories,
                 ...(await page.$$eval(
@@ -66,7 +60,6 @@ const scrapeFundCategories = ({ page, linksToScrape, browser }) => {
           (category) => category
         );
 
-        // console.log("Unique Fund categories", uniqueFundCategories);
         const fundCategoriesTable = uniqueFundCategories.map((fundCategory) => {
           return {
             uid: parseAbbreviation(fundCategory),
