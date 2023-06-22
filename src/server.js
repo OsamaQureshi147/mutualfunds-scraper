@@ -18,7 +18,7 @@ const startScraping = async () => {
   const amcsTable = await scrapeAMCs({
     page,
     browser,
-    links: fundTypesTable?.map(({ link }) => link),
+    linksToScrape: fundTypesTable?.map(({ link }) => link),
   });
   const fundCategoriesTable = await scrapeFundCategories({ page });
   const fundsTable = await scrapeFunds({ page });

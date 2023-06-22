@@ -1,7 +1,7 @@
 const { parseAbbreviation } = require("../utils.js");
 const { websiteUrl } = require("../constants");
 
-const scrapeAMCs = ({ page, links, browser }) => {
+const scrapeAMCs = ({ page, linksToScrape, browser }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
@@ -10,8 +10,8 @@ const scrapeAMCs = ({ page, links, browser }) => {
           elements.map((el) => el.textContent)
         );
 
-        if (links.length) {
-          for (const link of links) {
+        if (linksToScrape?.length) {
+          for (const link of linksToScrape) {
             // avoid extra navigation
             if (link !== websiteUrl) {
               const page = await browser.newPage();
@@ -24,16 +24,15 @@ const scrapeAMCs = ({ page, links, browser }) => {
               ];
             }
           }
-
-          const uniqueAMCs = [...new Set(amcs)];
-          const amcsTable = uniqueAMCs.map((amc) => {
-            return {
-              uid: parseAbbreviation(amc.trim()),
-              name: amc.trim(),
-            };
-          });
-          res(amcsTable);
         }
+        const uniqueAMCs = [...new Set(amcs)];
+        const amcsTable = uniqueAMCs.map((amc) => {
+          return {
+            uid: parseAbbreviation(amc.trim()),
+            name: amc.trim(),
+          };
+        });
+        res(amcsTable);
       } catch (error) {
         rej("Error scraping AMCs");
       }
