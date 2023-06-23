@@ -1,5 +1,5 @@
-const { parseAbbreviation } = require("../utils");
-const { websiteUrl } = require("../constants");
+const { parseAbbreviation } = require("../../utils");
+const { websiteUrl } = require("../../constants");
 
 const getFundsData = async ({ page }) => {
   const fundsTable = await page.$$eval("table.mydata tr", (rows) => {

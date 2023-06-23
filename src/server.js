@@ -5,7 +5,7 @@ const { scrapeAMCs } = require("./scraper-functions/scrapeAMCs");
 const {
   scrapeFundCategories,
 } = require("./scraper-functions/scrapeFundCategories");
-const { scrapeFunds } = require("./scraper-functions/scrapeFunds");
+const { scrapeFunds } = require("./scraper-functions/funds/scrapeFunds");
 
 const { websiteUrl } = require("./constants");
 
