@@ -1,5 +1,5 @@
 const { parseAbbreviation } = require("../../utils");
-const { websiteUrl } = require("../../constants");
+const { aum_report_url } = require("../../constants");
 
 const getFundsData = async ({ page }) => {
   const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
@@ -73,7 +73,7 @@ const scrapeFunds = ({ page, browser, linksToScrape }) => {
         if (linksToScrape?.length) {
           for (const link of linksToScrape) {
             // avoid extra navigation
-            if (link !== websiteUrl) {
+            if (link !== aum_report_url) {
               const page = await browser.newPage();
               await page.goto(link);
               const newPageFundRecords = await getFundsData({ page });

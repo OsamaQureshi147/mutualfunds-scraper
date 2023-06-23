@@ -7,12 +7,12 @@ const {
 } = require("./scraper-functions/scrapeFundCategories");
 const { scrapeFunds } = require("./scraper-functions/funds/scrapeFunds");
 
-const { websiteUrl } = require("./constants");
+const { aum_report_url } = require("./constants");
 
 const startScraping = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.goto(websiteUrl);
+  await page.goto(aum_report_url);
 
   const fundTypesTable = await scrapeFundTypes({ page });
 
