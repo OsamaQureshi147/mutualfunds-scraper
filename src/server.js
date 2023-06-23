@@ -16,23 +16,29 @@ const startScraping = async () => {
 
   const fundTypesTable = await scrapeFundTypes({ page });
 
-  const amcsTable = await scrapeAMCs({
+  const amcsTablePromise = scrapeAMCs({
     page,
     browser,
     linksToScrape: fundTypesTable?.map(({ link }) => link),
   });
 
-  const fundCategoriesTable = await scrapeFundCategories({
+  const fundCategoriesTablePromise = scrapeFundCategories({
     page,
     browser,
     linksToScrape: fundTypesTable?.map(({ link }) => link),
   });
 
-  const fundsTable = await scrapeFunds({
+  const fundsTablePromise = scrapeFunds({
     page,
     browser,
     linksToScrape: fundTypesTable?.map(({ link }) => link),
   });
+
+  const [amcsTable, fundCategoriesTable, fundsTable] = await Promise.all([
+    amcsTablePromise,
+    fundCategoriesTablePromise,
+    fundsTablePromise,
+  ]);
 
   await browser.close();
 
