@@ -19,14 +19,22 @@ const getFundsData = async ({ page }) => {
     );
 
     let currentAmc = "unknown";
+    const tableHeadersConventional = [
+      "fundName",
+      "category",
+      "inceptionDate",
+      "aum",
+      "amc",
+    ];
+    const tableHeadersForVPF = [
+      "fundName",
+      "subFund",
+      "category",
+      "inceptionDate",
+      "aum",
+      "amc",
+    ];
     fundsAndAmcsRows.forEach((row) => {
-      const tableHeaders = [
-        "fundName",
-        "category",
-        "inceptionDate",
-        "aum",
-        "amc",
-      ];
       if (!Object.values(row.classList).length) {
         currentAmc = row.querySelector("td").textContent.trim();
         return;
@@ -37,8 +45,15 @@ const getFundsData = async ({ page }) => {
         amc: currentAmc,
         fundType,
       };
+
+      const tableHeaders =
+        fundType === "Voluntary Pension Funds"
+          ? tableHeadersForVPF
+          : tableHeadersConventional;
       const cells = Array.from(row.querySelectorAll("td"));
       cells.forEach((cell, i) => {
+        // In VPF, we have additional second column of sub type which we don't want in our schema right now
+        if (fundType === "Voluntary Pension Funds" && i == 1) return;
         fundRecordObj[tableHeaders[i]] = cell.textContent.trim();
       });
       formattedFundsDataWithAMCs.push(fundRecordObj);
