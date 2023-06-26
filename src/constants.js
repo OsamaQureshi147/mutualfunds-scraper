@@ -1,6 +1,6 @@
-const aum_report_url =
+const funds_aum_url =
   "https://www.mufap.com.pk/aum_report.php?tab=01&fname=&amc=&cat=&strdate=&endate=&submitted=&mnt=&yrs=&s=";
-const payout_url =
+const payouts_url =
   "https://www.mufap.com.pk/payout-report.php?tab=01&fname=&amc=&cat=&strdate=&endate=&submitted=&mnt=&yrs=&s=";
 
-module.exports = { aum_report_url, payout_url };
+module.exports = { funds_aum_url, payouts_url };

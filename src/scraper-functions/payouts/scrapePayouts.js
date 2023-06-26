@@ -64,7 +64,7 @@ const getFundsData = async ({ page }) => {
   return fundsTable;
 };
 
-const scrapeFunds = ({ page, browser, linksToScrape }) => {
+const scrapePayouts = ({ page, browser, linksToScrape }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
@@ -100,5 +100,5 @@ const scrapeFunds = ({ page, browser, linksToScrape }) => {
 };
 
 module.exports = {
-  scrapeFunds,
+  scrapePayouts,
 };

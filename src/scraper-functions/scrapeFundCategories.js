@@ -1,5 +1,5 @@
 const { parseAbbreviation } = require("../utils.js");
-const { aum_report_url } = require("../constants");
+const { funds_aum_url } = require("../constants");
 
 const getCategoryColIndex = async ({ page }) => {
   let headerColumns = await page.$$eval(
@@ -33,7 +33,7 @@ const scrapeFundCategories = ({ page, linksToScrape, browser }) => {
         if (linksToScrape?.length) {
           for (const link of linksToScrape) {
             // avoid extra navigation
-            if (link !== aum_report_url) {
+            if (link !== funds_aum_url) {
               const page = await browser.newPage();
               await page.goto(link);
               const { categoryColIndex } = await getCategoryColIndex({ page });
