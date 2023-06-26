@@ -1,7 +1,8 @@
 const { parseAbbreviation } = require("../../utils");
-const { funds_aum_url } = require("../../constants");
+const { payouts_url } = require("../../constants");
+const { scrapeTypes } = require("../scrapeTypes");
 
-const getFundsData = async ({ page }) => {
+const getPayoutsData = async ({ page }) => {
   const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
     // div with id = sellink is current fundType.
     // It is basically the selected tab
@@ -64,34 +65,38 @@ const getFundsData = async ({ page }) => {
   return fundsTable;
 };
 
-const scrapePayouts = ({ page, browser, linksToScrape }) => {
+const scrapePayouts = ({ page, browser }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
-        let fundsRecords = await getFundsData({ page });
+        await page.goto(payouts_url);
+        const payoutTypes = await scrapeTypes({ page });
+        const linksToScrape = payoutTypes.map(({ link }) => link);
+        let payoutsData = await getPayoutsData({ page });
+        console.log("payouts Data", payoutsData);
 
-        if (linksToScrape?.length) {
-          for (const link of linksToScrape) {
-            // avoid extra navigation
-            if (link !== funds_aum_url) {
-              const page = await browser.newPage();
-              await page.goto(link);
-              const newPageFundRecords = await getFundsData({ page });
-              fundsRecords = [...fundsRecords, ...newPageFundRecords];
-            }
-          }
-        }
+        // if (linksToScrape?.length) {
+        //   for (const link of linksToScrape) {
+        //     // avoid extra navigation
+        //     if (link !== payouts_url) {
+        //       const page = await browser.newPage();
+        //       await page.goto(link);
+        //       const newPageFundRecords = await getPayoutsData({ page });
+        //       fundsRecords = [...fundsRecords, ...newPageFundRecords];
+        //     }
+        //   }
+        // }
 
-        const formattedFundsTable = fundsRecords.map((fundRecord) => {
-          return {
-            ...fundRecord,
-            fundName: parseAbbreviation(fundRecord.fundName),
-            category: parseAbbreviation(fundRecord.category),
-            fundType: parseAbbreviation(fundRecord.fundType),
-            amc: parseAbbreviation(fundRecord.amc),
-          };
-        });
-        res(formattedFundsTable);
+        // const formattedFundsTable = fundsRecords.map((fundRecord) => {
+        //   return {
+        //     ...fundRecord,
+        //     fundName: parseAbbreviation(fundRecord.fundName),
+        //     category: parseAbbreviation(fundRecord.category),
+        //     fundType: parseAbbreviation(fundRecord.fundType),
+        //     amc: parseAbbreviation(fundRecord.amc),
+        //   };
+        // });
+        res("formattedFundsTable");
       } catch (error) {
         rej({ error: "Error scraping funds", cause: error });
       }

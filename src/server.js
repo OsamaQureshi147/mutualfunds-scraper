@@ -1,34 +1,34 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs/promises");
 
-const { aum_report_url, payout_url } = require("./constants");
+const { funds_aum_url } = require("./constants");
 const {
   scrapeCommonEntities,
   scrapeFunds,
-  scrapeFundTypes,
+  scrapeTypes,
+  scrapePayouts,
 } = require("./scraper-functions");
 
 const startScraping = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.goto(aum_report_url);
-  const fundTypes = await scrapeFundTypes({ page });
+  await page.goto(funds_aum_url);
+  const fundTypes = await scrapeTypes({ page });
   const { amcsTable, fundCategoriesTable } = await scrapeCommonEntities({
     page,
     browser,
     linksToScrape: fundTypes?.map(({ link }) => link),
   });
+
+  // scrape for Funds
   const fundsTable = await scrapeFunds({
     page,
     browser,
     linksToScrape: fundTypes?.map(({ link }) => link),
   });
 
-  // start scraping for payouts
-  await page.goto(payout_url);
-  const payoutFundTypes = await scrapeFundTypes({ page });
-
-  console.log("Payout funds type", payoutFundTypes);
+  // start scraping for Payouts
+  const payoutsTable = await scrapePayouts({ page, browser });
 
   await browser.close();
 
@@ -39,5 +39,6 @@ const startScraping = async () => {
     JSON.stringify(fundCategoriesTable)
   );
   await fs.writeFile("funds.txt", JSON.stringify(fundsTable));
+  await fs.writeFile("payouts.txt", JSON.stringify(payoutsTable));
 };
 startScraping();
