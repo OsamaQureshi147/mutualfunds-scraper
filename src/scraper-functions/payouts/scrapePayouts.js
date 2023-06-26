@@ -56,30 +56,29 @@ const scrapePayouts = ({ page, browser, linksToScrape }) => {
     (async () => {
       try {
         let payoutRecords = await getPayoutsData({ page });
-        console.log("payouts Data", payoutRecords.slice(0, 4));
 
-        // if (linksToScrape?.length) {
-        //   for (const link of linksToScrape) {
-        //     // avoid extra navigation
-        //     if (link !== payouts_url) {
-        //       const page = await browser.newPage();
-        //       await page.goto(link);
-        //       const newPageFundRecords = await getPayoutsData({ page });
-        //       fundsRecords = [...fundsRecords, ...newPageFundRecords];
-        //     }
-        //   }
-        // }
+        if (linksToScrape?.length) {
+          for (const link of linksToScrape) {
+            // avoid extra navigation
+            if (link !== payouts_url) {
+              const page = await browser.newPage();
+              await page.goto(link);
+              const newPagePayoutsRecords = await getPayoutsData({ page });
+              payoutRecords = [...payoutRecords, ...newPagePayoutsRecords];
+            }
+          }
+        }
 
-        // const formattedFundsTable = fundsRecords.map((fundRecord) => {
-        //   return {
-        //     ...fundRecord,
-        //     fundName: parseAbbreviation(fundRecord.fundName),
-        //     category: parseAbbreviation(fundRecord.category),
-        //     fundType: parseAbbreviation(fundRecord.fundType),
-        //     amc: parseAbbreviation(fundRecord.amc),
-        //   };
-        // });
-        res(payoutRecords);
+        const formattedPayoutsTable = payoutRecords.map((payoutRecord) => {
+          return {
+            ...payoutRecord,
+            fundName: parseAbbreviation(payoutRecord.fundName),
+            category: parseAbbreviation(payoutRecord.category),
+            // fundType: parseAbbreviation(payoutRecord.fundType),
+            // amc: parseAbbreviation(payoutRecord.amc),
+          };
+        });
+        res(formattedPayoutsTable);
       } catch (error) {
         rej({ error: "Error scraping funds", cause: error });
       }
