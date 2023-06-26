@@ -1,53 +1,50 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs/promises");
-const { scrapeFundTypes } = require("./scraper-functions/scrapeFundTypes");
-const { scrapeAMCs } = require("./scraper-functions/scrapeAMCs");
-const {
-  scrapeFundCategories,
-} = require("./scraper-functions/scrapeFundCategories");
-const { scrapeFunds } = require("./scraper-functions/scrapeFunds");
 
-const { websiteUrl } = require("./constants");
+const { funds_aum_url, payouts_url } = require("./constants");
+const {
+  scrapeCommonEntities,
+  scrapeFunds,
+  scrapePayouts,
+  scrapeFundTypes,
+} = require("./scraper-functions");
 
 const startScraping = async () => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.goto(websiteUrl);
-
-  const fundTypesTable = await scrapeFundTypes({ page });
-
-  const amcsTablePromise = scrapeAMCs({
+  await page.goto(funds_aum_url);
+  const fundTypes = await scrapeFundTypes({ page });
+  const { amcsTable, fundCategoriesTable } = await scrapeCommonEntities({
     page,
     browser,
-    linksToScrape: fundTypesTable?.map(({ link }) => link),
+    linksToScrape: fundTypes?.map(({ link }) => link),
   });
 
-  const fundCategoriesTablePromise = scrapeFundCategories({
+  // scrape for Funds
+  const fundsTable = await scrapeFunds({
     page,
     browser,
-    linksToScrape: fundTypesTable?.map(({ link }) => link),
+    linksToScrape: fundTypes?.map(({ link }) => link),
   });
 
-  const fundsTablePromise = scrapeFunds({
+  // start scraping for Payouts
+  await page.goto(payouts_url);
+  const payoutFundTypes = await scrapeFundTypes({ page });
+  const payoutsTable = await scrapePayouts({
     page,
     browser,
-    linksToScrape: fundTypesTable?.map(({ link }) => link),
+    linksToScrape: payoutFundTypes?.map(({ link }) => link),
   });
-
-  const [amcsTable, fundCategoriesTable, fundsTable] = await Promise.all([
-    amcsTablePromise,
-    fundCategoriesTablePromise,
-    fundsTablePromise,
-  ]);
 
   await browser.close();
 
-  await fs.writeFile("fund-types.txt", JSON.stringify(fundTypesTable));
+  await fs.writeFile("fund-types.txt", JSON.stringify(fundTypes));
   await fs.writeFile("amcs.txt", JSON.stringify(amcsTable));
   await fs.writeFile(
     "fund-categories.txt",
     JSON.stringify(fundCategoriesTable)
   );
   await fs.writeFile("funds.txt", JSON.stringify(fundsTable));
+  await fs.writeFile("payouts.txt", JSON.stringify(payoutsTable));
 };
 startScraping();
