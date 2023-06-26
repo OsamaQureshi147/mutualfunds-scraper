@@ -1,79 +1,62 @@
 const { parseAbbreviation } = require("../../utils");
 const { payouts_url } = require("../../constants");
-const { scrapeTypes } = require("../scrapeTypes");
 
 const getPayoutsData = async ({ page }) => {
-  const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
+  const payoutsTable = await page.$$eval("table.mydata tr", (rows) => {
     // div with id = sellink is current fundType.
     // It is basically the selected tab
     const fundType = document.getElementById("sellink")?.textContent.trim();
 
-    const formattedFundsDataWithAMCs = [];
+    const formattedPayoutsDataWithAMCs = [];
 
     // Need to filter the rows based on classLists.
     // The tr with "border" class consists of funds data
     // The tr with no class consists of the AMC which is required to develop the relation
-    const fundsAndAmcsRows = rows.filter(
+    const payoutsAndAmcsRows = rows.filter(
       (row) =>
         Object.values(row.classList).includes("border") ||
         !Object.values(row.classList).length
     );
 
     let currentAmc = "unknown";
-    const tableHeadersConventional = [
+    const tableHeaders = [
       "fundName",
       "category",
       "inceptionDate",
-      "aum",
-      "amc",
+      "payout_per_unit",
+      "ex_nav",
+      "payout_date",
     ];
-    const tableHeadersForVPF = [
-      "fundName",
-      "subFund",
-      "category",
-      "inceptionDate",
-      "aum",
-      "amc",
-    ];
-    fundsAndAmcsRows.forEach((row) => {
+
+    payoutsAndAmcsRows.forEach((row) => {
       if (!Object.values(row.classList).length) {
         currentAmc = row.querySelector("td").textContent.trim();
         return;
       }
       // return the rows as JSON with key-value pairs
-      let fundRecordObj = {
-        uid: row.id,
+      let payoutRecordObj = {
         amc: currentAmc,
         fundType,
       };
 
-      const tableHeaders =
-        fundType === "Voluntary Pension Funds"
-          ? tableHeadersForVPF
-          : tableHeadersConventional;
       const cells = Array.from(row.querySelectorAll("td"));
       cells.forEach((cell, i) => {
-        // In VPF, we have additional second column of sub type which we don't want in our schema right now
-        if (fundType === "Voluntary Pension Funds" && i == 1) return;
-        fundRecordObj[tableHeaders[i]] = cell.textContent.trim();
+        payoutRecordObj[tableHeaders[i]] = cell.textContent.trim();
       });
-      formattedFundsDataWithAMCs.push(fundRecordObj);
+      formattedPayoutsDataWithAMCs.push(payoutRecordObj);
     });
 
-    return formattedFundsDataWithAMCs;
+    return formattedPayoutsDataWithAMCs;
   });
-  return fundsTable;
+  return payoutsTable;
 };
 
-const scrapePayouts = ({ page, browser }) => {
+const scrapePayouts = ({ page, browser, linksToScrape }) => {
   return new Promise((res, rej) => {
     (async () => {
       try {
-        await page.goto(payouts_url);
-        const payoutTypes = await scrapeTypes({ page });
-        const linksToScrape = payoutTypes.map(({ link }) => link);
-        let payoutsData = await getPayoutsData({ page });
-        console.log("payouts Data", payoutsData);
+        let payoutRecords = await getPayoutsData({ page });
+        console.log("payouts Data", payoutRecords.slice(0, 4));
 
         // if (linksToScrape?.length) {
         //   for (const link of linksToScrape) {
@@ -96,7 +79,7 @@ const scrapePayouts = ({ page, browser }) => {
         //     amc: parseAbbreviation(fundRecord.amc),
         //   };
         // });
-        res("formattedFundsTable");
+        res(payoutRecords);
       } catch (error) {
         rej({ error: "Error scraping funds", cause: error });
       }
