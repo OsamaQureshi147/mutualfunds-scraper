@@ -3,6 +3,18 @@ const { funds_aum_url } = require("../../constants");
 
 const getFundsData = async ({ page }) => {
   const fundsTable = await page.$$eval("table.mydata tr", (rows) => {
+    const getRecordIdFromHrefValue = ({ hrefValue }) => {
+      let reportId;
+      if (!hrefValue) {
+        reportId = null;
+      } else {
+        const pattern = /'(.*?)'/g; //regex to extract reportId from href which is inside the single quotes
+        const matches = hrefValue.matchAll(pattern);
+        reportId = Array.from(matches, (match) => match[1])[0];
+      }
+      return { reportId };
+    };
+
     // div with id = sellink is current fundType.
     // It is basically the selected tab
     const fundType = document.getElementById("sellink")?.textContent.trim();
@@ -39,11 +51,22 @@ const getFundsData = async ({ page }) => {
         currentAmc = row.querySelector("td").textContent.trim();
         return;
       }
+
+      // scrape the report_id, which will be used in scraping asset_classes_distribution
+      const anchorElement = row.querySelector(`td#aanum${row.id} > a`);
+      const hrefAttribute = anchorElement
+        ? anchorElement.getAttribute("href")
+        : null;
+      const { reportId } = getRecordIdFromHrefValue({
+        hrefValue: hrefAttribute,
+      });
+
       // return the rows as JSON with key-value pairs
       let fundRecordObj = {
         uid: row.id,
         amc: currentAmc,
         fundType,
+        reportId,
       };
 
       const tableHeaders =
