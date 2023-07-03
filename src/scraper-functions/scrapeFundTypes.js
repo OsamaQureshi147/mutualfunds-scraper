@@ -19,7 +19,7 @@ const scrapeFundTypes = ({ page }) => {
 
         res(fundTypesTable);
       } catch (error) {
-        rej("Error scraping fund types");
+        rej({ message: "Error scraping fund types", cause: error });
       }
     })();
   });
