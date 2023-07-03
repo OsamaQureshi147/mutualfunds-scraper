@@ -34,7 +34,7 @@ const scrapeAMCs = ({ page, linksToScrape, browser }) => {
         });
         res(amcsTable);
       } catch (error) {
-        rej("Error scraping AMCs");
+        rej({ message: "Error scraping AMCs", cause: error });
       }
     })();
   });
