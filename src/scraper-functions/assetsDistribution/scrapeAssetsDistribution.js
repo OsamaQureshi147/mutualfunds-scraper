@@ -1,7 +1,7 @@
 const { asset_distribution_baseurl } = require("../../constants");
 
 const getAssetsDistributionData = async ({ page }) => {
-  const { assetsDistributionTable } = await page.$$eval(
+  const { fundAssetDistributionTable } = await page.$$eval(
     "table.mydata tr",
     (rows) => {
       const tableHeaders = ["assetClass", "rupees", "percentage"];
@@ -16,7 +16,7 @@ const getAssetsDistributionData = async ({ page }) => {
       // exluding last row because it contains total
       const tableRows = rows.slice(tableDataStartIndex + 1, -1);
 
-      let assetsDistributionTable = [];
+      let fundAssetDistributionTable = [];
       tableRows.forEach((row) => {
         let payoutRecordObj = {};
         const cells = Array.from(row.querySelectorAll("td"));
@@ -25,42 +25,39 @@ const getAssetsDistributionData = async ({ page }) => {
             .trim()
             .replace(/[()]/g, "");
         });
-        assetsDistributionTable.push(payoutRecordObj);
+        fundAssetDistributionTable.push(payoutRecordObj);
       });
 
-      return { assetsDistributionTable };
+      return { fundAssetDistributionTable };
     }
   );
-  return { assetsDistributionTable };
+  return { fundAssetDistributionTable };
 };
 
 const scrapeAssetsDistribution = ({ browser, fundsWithReportIds }) => {
-  console.log("Funds with report Ids", fundsWithReportIds.slice(0, 5));
+  // Funds having reportIds are scrapeable because rest are either NA or not published
+  const scrapeableFunds = fundsWithReportIds.filter(({ reportId }) => reportId);
+  console.log("scrapaAble Assets", scrapeableFunds);
+
   return new Promise((res, rej) => {
     (async () => {
       try {
-        const page = await browser.newPage();
-        await page.goto(asset_distribution_baseurl);
-        let { assetsDistributionTable } = await getAssetsDistributionData({
-          page,
-        });
-        assetsDistributionTable.forEach(
-          (record) => (record.fundId = fundsWithReportIds[0].uid)
-        );
+        let assetDistributionTable = [];
+        for (const scrapeableFund of scrapeableFunds) {
+          const { uid, reportId } = scrapeableFund;
+          const page = await browser.newPage();
+          await page.goto(asset_distribution_baseurl + reportId);
+          let { fundAssetDistributionTable } = await getAssetsDistributionData({
+            page,
+          });
+          fundAssetDistributionTable.forEach((record) => (record.fundId = uid));
+          assetDistributionTable = [
+            ...assetDistributionTable,
+            ...fundAssetDistributionTable,
+          ];
+        }
 
-        // if (linksToScrape?.length) {
-        //   for (const link of linksToScrape) {
-        //     // avoid extra navigation
-        //     if (link !== payouts_url) {
-        //       const page = await browser.newPage();
-        //       await page.goto(link);
-        //       const newPagePayoutsRecords = await getAssetsDistributionData({ page });
-        //       payoutRecords = [...payoutRecords, ...newPagePayoutsRecords];
-        //     }
-        //   }
-        // }
-
-        res("assetsDistributionRecord");
+        res(assetDistributionTable);
       } catch (error) {
         rej({ error: "Error scraping funds", cause: error });
       }
